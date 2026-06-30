@@ -28,32 +28,68 @@ function printCandidateReview(candidate) {
     printMessage("Laptop Available: " + candidate.laptopAvailability);
 }
 
-function submitApplication(answer) {
+function submitApplication(answer,candidate,storedApplications) {
     if (answer === "yes") {
+        candidate.candidateScore = calculateCandidateScore(candidate);
+        storedApplications.push(candidate);
         printMessage("\nApplication submitted successfully!");
+        return true;
     } else {
         printMessage("\nApplication cancelled.");
+        return false;
     }
 }
 function calculateCandidateScore(candidate) {
     return candidate.weeklyStudyHours + candidate.experienceYears + candidate.motivationLevel;
 }
-function printCandidateScoreComparison(candidate, storedApplications) {
-    const candidateScore = calculateCandidateScore(candidate);
+function printTheFinalResult(candidate, storedApplications,vacancyNumber) {
 
     printMessage("\nCandidate Score:");
-    printMessage(candidate.candidateName + " score: " + candidateScore);
+    printMessage(`${candidate.candidateName} score: ${candidate.candidateScore}`);
 
     printMessage("\nStored Applications Scores:");
-
-    for (const application of storedApplications) {
-        const storedScore = calculateCandidateScore(application);
-        printMessage(application.candidateName + " score: " + storedScore);
+    for(let applicationIndex = 0; applicationIndex < storedApplications.length; applicationIndex++) {
+        storedApplications[applicationIndex].candidateScore  = calculateCandidateScore(storedApplications[applicationIndex]);
+        printMessage(`${storedApplications[applicationIndex].candidateName}  score: ${storedApplications[applicationIndex].candidateScore}`);
     }
+
+    // const acceptedApplications = [];
+    for(let i = 0; i< storedApplications.length; i++){
+        for(let j = i+1; j < storedApplications.length;j++){
+            if(storedApplications[j].candidateScore > storedApplications[i].candidateScore){
+                let temp = storedApplications[i];
+                storedApplications[i] = storedApplications[j];
+                storedApplications[j] = temp;
+            }
+        }
+    }
+    printMessage(storedApplications)
+    const acceptedApplications = storedApplications.slice(0, vacancyNumber);
+
+    if (acceptedApplications.includes(candidate)) {
+        printMessage("\nCongratulations! Your application has been accepted.");
+    } else {
+        printMessage("\nSorry, your application has been rejected.");
+    }
+
+/*    if(vacancyNumber> 0) {
+        //Do the job
+        printMessage("Show The Results");
+        const orderedApplications = []
+
+        for(let i = vacancyNumber; i >= vacancyNumber; i--){
+            printMessage(`Show The Results ${i}`);
+            acceptedApplications.push(storedApplications[i]);
+        }
+        printMessage(acceptedApplications)
+    }else{
+        printMessage("No More Applications Available");
+    }*/
 }
 
 async function main() {
 
+    let vacancies = 2;
     const storedApplications = [{
             candidateName: "Sara",
             fieldOfInterest: "Web Development",
@@ -62,7 +98,9 @@ async function main() {
             weeklyStudyHours: 25,
             englishLevel: "B1",
             laptopAvailability: true,
-        },
+            candidateScore: 34
+
+    },
         {
             candidateName: "Ali",
             fieldOfInterest: "Mobile Development",
@@ -71,6 +109,7 @@ async function main() {
             weeklyStudyHours: 20,
             englishLevel: "A2",
             laptopAvailability: true,
+            candidateScore: 29
         },
     ];
 
@@ -88,6 +127,7 @@ async function main() {
         weeklyStudyHours: 0,
         englishLevel: "A1",
         laptopAvailability: false,
+        candidateScore: 0
     }
     printMessage("Fill Out This Form Please ..\n");
     candidate.candidateName = await ask("What is your name? ");
@@ -97,16 +137,15 @@ async function main() {
     candidate.motivationLevel = Number(await ask("What is your motivation level? (out of 10) "));
     const laptopAnswer = await ask("Do you have a laptop? yes/no ");
     candidate.laptopAvailability =  laptopAnswer === "yes";
-
     candidate.englishLevel = await ask("What is your english level? ");
 
     printCandidateReview(candidate)
 
-    const submitAnswer = await ask("\nDo you want to submit this application? yes/no ");
+    const submitAnswer = (await ask("\nDo you want to submit this application? yes/no ")).toLowerCase().trim();
 
-    submitApplication(submitAnswer);
+    const isSubmitted = submitApplication(submitAnswer,candidate,storedApplications);
 
-    printCandidateScoreComparison(candidate, storedApplications);
+    if (isSubmitted) printTheFinalResult(candidate, storedApplications,vacancies);
 
     //We close the input when the app finished
     finish();
