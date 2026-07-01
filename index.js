@@ -119,16 +119,7 @@ async function main() {
 
     //Filling out the form
     await ask("APPLY NOW - Press Enter to continue...\n");
-    const  candidate = {
-        candidateName: "",
-        fieldOfInterest: "",
-        experienceYears: 0,
-        motivationLevel: 0,
-        weeklyStudyHours: 0,
-        englishLevel: "A1",
-        laptopAvailability: false,
-        candidateScore: 0
-    }
+    const  candidate = {}
     printMessage("Fill Out This Form Please ..\n");
     candidate.candidateName = await ask("What is your name? ");
     candidate.fieldOfInterest = await ask("What is your field of interest? ex: Web Development, Mobile Development Development ");
